@@ -6,59 +6,37 @@ def right_shift(bits, n):
 
 def init(key, IV):
     D0 = 0x6a09e667f3bcc908
-    key_0 = '0x' + key[:16]
-    key_1 = '0x' + key[16:]    
-    a_49 = []
+    key_0 = int(('0x' + key[:16]), 16)
+    key_1 = int(('0x' + key[16:]), 16)
+    a_49_2 = (left_shift(key_0, 7)) ^ (right_shift(key_1, 7)) ^ D0
+    a_49 = [key_0, key_1, a_49_2]
     b_16 = []
-    key_00 = int(key_0, 16)
-    key_11 = int(key_1, 16)
-    a_49.append(key_00)
-    a_49.append(key_11)
-    a_49_2 = (left_shift(key_00, 7)) ^ (right_shift(key_11, 7)) ^ D0
-    a_49.append(a_49_2)
-    a_48 = function_rho1(a_49, 0, 0)
-    b_16.append(a_48[0])
-    temp = a_48
-    counter = 47
-    for i in range(15):
+    temp = a_49
+    for i in range(16):
         a_new = function_rho1(temp, 0, 0)
-        counter -= 1
         temp = a_new
         b_16.append(a_new[0])
     a_33 = a_new
     b_16 =  b_16[::-1]
-    IV_0 = '0x' + IV[:16]
-    IV_1 = '0x' + IV[16:]
-    a_32 = []
-    a_32_0 = a_33[0] ^ int(IV_0, 16)
-    a_32_1 = a_33[1] ^ int(IV_1, 16)
-    a_32_2 = a_33[2] ^ (left_shift(int(IV_0, 16), 7)) ^ (right_shift(int(IV_1, 16), 7)) ^ D0
-    a_32.append(a_32_0)
-    a_32.append(a_32_1)
-    a_32.append(a_32_2)
+    IV_0 = int(('0x' + IV[:16]), 16)
+    IV_1 = int(('0x' + IV[16:]), 16)
+    a_32_0 = a_33[0] ^ IV_0
+    a_32_1 = a_33[1] ^ IV_1
+    a_32_2 = a_33[2] ^ (left_shift(IV_0, 7)) ^ (right_shift(IV_1, 7)) ^ D0
+    a_32 = [a_32_0, a_32_1, a_32_2]
     temp = a_32
     for i in range(16):
         a_new = function_rho1(temp, 0, 0)
-        counter -= 1
         temp = a_new
     a_16 = a_new
-    temp_a = a_16
-    temp_b = b_16
-    print(hex(a_16[2]))
+    temp_a, temp_b = a_16, b_16
     z_i = ''
-    counter = 15
     for i in range(16):
-        print(counter)
-        counter -= 1
-        
         a_new = next(temp_a, temp_b)[0]
         b_new = next(temp_a, temp_b)[1]
         z = next(temp_a, temp_b)[2]
         temp_a, temp_b = a_new, b_new
     return temp_a, temp_b, z
-
-
-
 
 def next(a, b):
     a_next = function_rho1(a, b[4], b[10])
@@ -77,9 +55,7 @@ def make_sequence(a_0, b_0, z, text_length_byte):
         b_new = next(temp_a, temp_b)[1]
         z += next(temp_a, temp_b)[2]
         temp_a, temp_b = a_new, b_new
-    return z  
-
-
+    return z
 
 def function_lambda1(b, a_0):
     b_new = [0] * 16
@@ -91,35 +67,27 @@ def function_lambda1(b, a_0):
     b_new[4] = b[3] ^ b[7]
     b_new[10] = b[9] ^ left_shift(b[13], 32)
     return b_new
-            
 
 def function_rho1(a_i, w1, w2):
     D1 = 0xbb67ae8584caa73b
     D2 = 0x3c6ef372fe94f82b
-    # a_i - array
     a_0_new = a_i[1]
     a_1_new = a_i[2] ^ function_F(a_i[1], w1) ^ D1
     a_2_new = a_i[0] ^ function_F(a_i[1], left_shift(w2, 17)) ^ D2
     return [a_0_new, a_1_new, a_2_new]
 
-
 def function_F(x, t):
-    # в каком формате x и t под вопросом
     x_new = hex(x ^ t)[2:]
     if len(x_new) < 16:
         dif = 16 - len(x_new)
         x_new = '0' * dif + x_new
-    
-    # допустим x_new - это строка
     x_i = []
     for i in range(1, len(x_new), 2):
         x_i.append(x_new[i-1] + x_new[i])
     p_i = [function_S_R(i)[2:] for i in x_i]
-    
     q_l = function_M(p_i[0], p_i[1], p_i[2], p_i[3])
     q_r = function_M(p_i[4], p_i[5], p_i[6], p_i[7])
     return int(('0x' + q_r[0] + q_r[1] + q_l[2] + q_l[3] + q_l[0] + q_l[1] + q_r[2] + q_r[3]), 16)
-
 
 def function_S_R(x):
     x = int('0x' + x, 16)
@@ -141,17 +109,16 @@ def function_S_R(x):
            '0x8c', '0xa1', '0x89', '0x0d', '0xbf', '0xe6', '0x42', '0x68', '0x41', '0x99', '0x2d', '0x0f', '0xb0', '0x54', '0xbb', '0x16']
     return SUB[x]
 
-
 def function_M(x0, x1, x2, x3):
     m = 8
-    f_x = [int(i) for i in '100011011']
-    const1 = [int(i) for i in make_polynomials(bin(1)[2:])]
-    const2 = [int(i) for i in make_polynomials(bin(2)[2:])]
-    const3 = [int(i) for i in make_polynomials(bin(3)[2:])]
-    x0 = [int(i) for i in make_polynomials(bin(int('0x' + x0, 16))[2:])]
-    x1 = [int(i) for i in make_polynomials(bin(int('0x' + x1, 16))[2:])]
-    x2 = [int(i) for i in make_polynomials(bin(int('0x' + x2, 16))[2:])]
-    x3 = [int(i) for i in make_polynomials(bin(int('0x' + x3, 16))[2:])]
+    f_x = get_int('100011011')
+    const1 = get_int(make_polynomials(bin(1)[2:]))
+    const2 = get_int(make_polynomials(bin(2)[2:]))
+    const3 = get_int(make_polynomials(bin(3)[2:]))
+    x0 = get_int(make_polynomials(bin(int('0x' + x0, 16))[2:]))
+    x1 = get_int(make_polynomials(bin(int('0x' + x1, 16))[2:]))
+    x2 = get_int(make_polynomials(bin(int('0x' + x2, 16))[2:]))
+    x3 = get_int(make_polynomials(bin(int('0x' + x3, 16))[2:]))
     y0 = hex(polynomials_multiply(const2, x0, f_x) ^ polynomials_multiply(const3, x1, f_x) ^ polynomials_multiply(const1, x2, f_x) ^ polynomials_multiply(const1, x3, f_x))[2:]
     y1 = hex(polynomials_multiply(const1, x0, f_x) ^ polynomials_multiply(const2, x1, f_x) ^ polynomials_multiply(const3, x2, f_x) ^ polynomials_multiply(const1, x3, f_x))[2:]
     y2 = hex(polynomials_multiply(const1, x0, f_x) ^ polynomials_multiply(const1, x1, f_x) ^ polynomials_multiply(const2, x2, f_x) ^ polynomials_multiply(const3, x3, f_x))[2:]
@@ -166,58 +133,57 @@ def function_M(x0, x1, x2, x3):
     print            
     return res
 
+def get_int(string):
+    return [int(i) for i in string]
+
 def make_polynomials(num):
     while len(num) < 8:
         num = '0' + num
     return num
 
-
-def polynomials_module(a, p_x):
-    if len(a) < len(p_x):
+def polynomials_module(a, f_x):
+    if len(a) < len(f_x):
         return a
-    for i in range(len(p_x)):
-        a[i] = (a[i] + p_x[i]) % 2
+    for i in range(len(f_x)):
+        a[i] = (a[i] + f_x[i]) % 2
     while a and a[0] == 0:
         a.pop(0)
-    return polynomials_module(a, p_x)
+    return polynomials_module(a, f_x)
 
-def polynomials_multiply(a, b, p_x):
+def polynomials_multiply(a, b, f_x):
     len_res = len(a) + len(b) - 1
     res = [0] * len_res
     for i in range(len(a)):
         if a[i] == 1:
             for j in range(len(b)):
                 res[i+j] = (res[i+j] + b[j]) % 2
-    module = ''.join(str(i) for i in polynomials_module(res, p_x))
+    module = ''.join(str(i) for i in polynomials_module(res, f_x))
     if module == '':
         module += '0'
     return int(('0b' + module), 2)
     
 
-
-def encrypt_text(file, key, vector):
-    with open('test1.txt', 'rb') as text_bytes:
+def encrypt_text(plaintext, key, vector):
+    with open(plaintext, 'rb') as text_bytes:
         input_bytes = text_bytes.read()
-    
     byte_length = len(input_bytes)
-    print(byte_length)
     s_0 = init(key, vector)
-    zz = make_sequence(s_0[0], s_0[1], s_0[2], byte_length)
-    z = bytes.fromhex(make_sequence(s_0[0], s_0[1], s_0[2], byte_length))
-    res = ''
+    z_res = make_sequence(s_0[0], s_0[1], s_0[2], byte_length)
+    z = bytes.fromhex(z_res)
+    ciphertext = ''
     for i in range(byte_length):
         xor = hex(input_bytes[i] ^ z[i])[2:]
         if len(xor) < 2:
             xor = '0' + xor
-        res += xor
-    return res, zz
+        ciphertext += xor
+    return ciphertext, z_res
 
-def decrypt_text(hexi, z):
+def decrypt_text(ciphertext, z):
     z_i = bytes.fromhex(z)
-    ciphertext = bytes.fromhex(hexi)
+    ciphertext_i = bytes.fromhex(ciphertext)
     res = []
-    for i in range(len(ciphertext)):
-        res.append(z_i[i] ^ ciphertext[i])
+    for i in range(len(ciphertext_i)):
+        res.append(z_i[i] ^ ciphertext_i[i])
     res_bytes = bytes(res)
     return res_bytes.decode('utf-8')
 
@@ -225,6 +191,8 @@ def decrypt_text(hexi, z):
 
 cipher = encrypt_text('test1.txt', '000102030405060708090a0b0c0d0e0f', 'f0e0d0c0b0a090807060504030201000')[0]
 z_i = encrypt_text('test1.txt', '000102030405060708090a0b0c0d0e0f', 'f0e0d0c0b0a090807060504030201000')[1]
+
+print(z_i)
 
 print(decrypt_text(cipher, z_i))
 
@@ -243,7 +211,3 @@ vector3 = '00000000000000000000000000000000'
 
 key4 = '69e706ee5295372c7513014730237993'
 vector4 = '2a0045c8492749d53a9b164a25e44915'
-
-# print(init(key, vector))
-
-
