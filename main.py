@@ -303,7 +303,7 @@ def main():
                 print()
                 print(f"Ваш файл '{input_file}' було успішно розшифровано. Результат розшифрування в файлі '{output_file}'")
                 if output_z:
-                    print(f"Побачити згенеровану послідовність Z ви можете в файлі '{output_z}'")
+                    print(f"Побачити згенеровану послідовність Z ви можете в файлі '{output_z}'\n")
                 print('Приходьте ще! <3')
             except:
                 print('Некоректно введена команда або назва файлів. Використовуйте: python main.py -encode <input_file> <output_file> <key_iv_file> [keystream_z_file]')
